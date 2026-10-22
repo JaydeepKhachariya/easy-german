@@ -1,10 +1,19 @@
 import path from "node:path";
 
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vitest/config";
+import { defineConfig, type Plugin } from "vitest/config";
+
+/** Tests never render MDX prose, so each .mdx import becomes an empty component. */
+const mdxStub: Plugin = {
+  name: "mdx-stub",
+  enforce: "pre",
+  transform(_code, id) {
+    if (id.endsWith(".mdx")) return { code: "export default function MDXStub() { return null; }" };
+  },
+};
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [mdxStub, react()],
   resolve: {
     alias: { "@": path.resolve(import.meta.dirname, "src") },
   },

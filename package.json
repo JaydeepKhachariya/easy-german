@@ -13,7 +13,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "check": "pnpm lint && pnpm typecheck && pnpm format:check && pnpm test && pnpm build"
+    "check": "pnpm lint && pnpm typecheck && pnpm format:check && pnpm test && pnpm build",
+    "german": "tsx scripts/print-german.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^6.0.0",

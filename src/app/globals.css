@@ -44,6 +44,31 @@
   /* Word-order roles */
   --color-slot-verb: var(--slot-verb);
   --color-slot-end: var(--slot-end);
+
+  --animate-slide-end: slide-end 700ms ease-out both;
+  --animate-pop: pop 500ms ease-out both;
+
+  @keyframes slide-end {
+    0% {
+      transform: translateX(-3rem);
+      opacity: 0;
+    }
+    100% {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  @keyframes pop {
+    0% {
+      transform: scale(0.85);
+    }
+    60% {
+      transform: scale(1.08);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
 }
 
 :root {
@@ -73,7 +98,7 @@
   --der-bg: #dbeafe;
   --die: #b91c1c;
   --die-bg: #fee2e2;
-  --das: #15803d;
+  --das: #166534;
   --das-bg: #dcfce7;
   --plural: #4b5563;
   --plural-bg: #e5e7eb;
