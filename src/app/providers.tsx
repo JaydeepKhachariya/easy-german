@@ -10,7 +10,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       {children}
       <StorageInit />
-      <Toaster richColors closeButton />
+      <Toaster richColors closeButton position="top-center" />
     </ThemeProvider>
   );
 }

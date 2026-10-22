@@ -1,9 +1,15 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 
-import { PageHeader } from "@/components/layout/page-header";
+import { LessonViewer } from "@/components/my-lessons/lesson-viewer";
 
 export const metadata: Metadata = { title: "My lesson" };
 
-export default function Page() {
-  return <PageHeader title="My lesson" description="" />;
+// Client-rendered from IndexedDB. useSearchParams needs a Suspense boundary in a static export.
+export default function ViewLessonPage() {
+  return (
+    <Suspense fallback={<p className="text-muted-foreground">Loading...</p>}>
+      <LessonViewer />
+    </Suspense>
+  );
 }

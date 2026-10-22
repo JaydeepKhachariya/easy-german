@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import type { Exercise } from "@/content/schema";
+import { hashString } from "@/lib/shuffle";
 
 import { ExerciseCard } from "./exercise-card";
 import type { ExerciseResult } from "./types";
@@ -12,9 +13,11 @@ export type ExerciseListProps = {
   exercises: Exercise[];
   /** Called on every check. Progress tracking hooks in here. */
   onAttempt?: (exercise: Exercise, result: ExerciseResult) => void;
+  /** Reset an exercise's state when its content changes (editor preview). */
+  remountOnChange?: boolean;
 };
 
-export function ExerciseList({ exercises, onAttempt }: ExerciseListProps) {
+export function ExerciseList({ exercises, onAttempt, remountOnChange }: ExerciseListProps) {
   const [solved, setSolved] = useState<Set<string>>(new Set());
 
   if (exercises.length === 0) {
@@ -28,7 +31,7 @@ export function ExerciseList({ exercises, onAttempt }: ExerciseListProps) {
       </p>
       {exercises.map((ex, i) => (
         <ExerciseCard
-          key={ex.id}
+          key={remountOnChange ? `${ex.id}:${hashString(JSON.stringify(ex))}` : ex.id}
           exercise={ex}
           number={i + 1}
           solved={solved.has(ex.id)}

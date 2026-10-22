@@ -24,6 +24,7 @@ export function LessonExercises({
     <ExerciseList
       conceptId={concept.id}
       exercises={concept.exercises}
+      remountOnChange={preview}
       onAttempt={async (ex, r) => {
         if (preview) return;
         try {

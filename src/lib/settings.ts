@@ -11,6 +11,8 @@ export const SettingsSchema = z.object({
   newCardsPerSession: z.number().int().min(1).max(100).default(20),
   /** Whether we already asked the browser for persistent storage. */
   persistRequested: z.boolean().default(false),
+  /** When the learner last downloaded a full backup (ms). 0 = never. */
+  lastBackupAt: z.number().default(0),
 });
 export type Settings = z.infer<typeof SettingsSchema>;
 export type SettingKey = keyof Settings;
