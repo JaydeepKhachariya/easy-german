@@ -346,6 +346,28 @@ const words = [
     ],
     { id: "ihr-formal", lessons: ["du-ihr-sie", "exam-letters"] },
   ),
+  w(
+    "article",
+    "dieser",
+    "this, these",
+    ["grammar"],
+    [
+      ["Dieser Pullover ist zu groß.", "This jumper is too big."],
+      ["Ich nehme diese Schuhe.", "I'll take these shoes."],
+    ],
+    { note: "Takes der-word endings: dieser, diese, dieses, diesen, diesem." },
+  ),
+  w(
+    "article",
+    "jeder",
+    "every, each",
+    ["grammar", "time"],
+    [
+      ["Ich stehe jeden Tag um sieben Uhr auf.", "I get up at seven every day."],
+      ["Jede Woche gehe ich schwimmen.", "I go swimming every week."],
+    ],
+    { note: "Takes der-word endings: jeder, jede, jedes, jeden, jedem. Singular only." },
+  ),
 
   // Prepositions
   w(

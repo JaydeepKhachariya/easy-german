@@ -36,6 +36,47 @@ export function headwordOf(e: DictEntry): string {
   return e.word;
 }
 
+const DEFINITE_FORMS: Record<string, [string, string][]> = {
+  der: [
+    ["den", "Akkusativ (der-word), Dativ plural"],
+    ["dem", "Dativ (der/das-word)"],
+    ["des", "Genitiv (der/das-word)"],
+  ],
+  die: [["der", "Dativ and Genitiv (die-word), Genitiv plural"]],
+  das: [
+    ["dem", "Dativ (der/das-word)"],
+    ["des", "Genitiv (der/das-word)"],
+  ],
+};
+
+const EIN_ENDINGS: [string, string][] = [
+  ["e", "die-word or plural (Nominativ, Akkusativ)"],
+  ["en", "Akkusativ (der-word), Dativ plural"],
+  ["em", "Dativ (der/das-word)"],
+  ["er", "Dativ and Genitiv (die-word), Genitiv plural"],
+  ["es", "Genitiv (der/das-word)"],
+];
+
+const DER_WORD_ENDINGS: [string, string][] = [
+  ["e", "die-word or plural (Nominativ, Akkusativ)"],
+  ["es", "das-word (Nominativ, Akkusativ), Genitiv"],
+  ["en", "Akkusativ (der-word), Dativ plural"],
+  ["em", "Dativ (der/das-word)"],
+];
+
+/** Article endings: den, einen, meinem, diese, jeden. */
+function articleForms(word: string): [string, string][] {
+  if (DEFINITE_FORMS[word]) return DEFINITE_FORMS[word];
+  // dieser, jeder, welcher
+  if (word.endsWith("er") && word !== "unser" && word !== "euer") {
+    const stem = word.slice(0, -2);
+    return DER_WORD_ENDINGS.map(([end, label]) => [`${stem}${end}`, label]);
+  }
+  // ein, kein, mein, unser; euer drops its e: eure, euren
+  const stem = word === "euer" ? "eur" : word;
+  return EIN_ENDINGS.map(([end, label]) => [`${stem}${end}`, label]);
+}
+
 /** form → label, per entry. Persons sharing a form are merged into one label. */
 export function labelledForms(e: DictEntry): Map<string, string> {
   const labels = new Map<string, string[]>();
@@ -89,6 +130,9 @@ export function labelledForms(e: DictEntry): Map<string, string> {
       add(c.superlative.replace(/^am /, ""), "superlative");
     }
     for (const f of allAdjectiveForms(e.word, e.adjective)) add(f, "with an ending");
+  } else if (e.pos === "article" || e.id === "welcher") {
+    add(e.word, e.pos === "article" ? "article" : e.pos);
+    for (const [f, label] of articleForms(e.word)) add(f, label);
   } else {
     add(e.word, e.pos);
   }

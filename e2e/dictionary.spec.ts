@@ -19,3 +19,14 @@ test("?q= in the URL runs the search", async ({ page }) => {
   await page.goto("/dictionary/?q=weiss");
   await expect(page.getByRole("link", { name: /wissen/ })).toBeVisible();
 });
+
+test("sentence helper explains word order", async ({ page }) => {
+  await page.goto("/dictionary/");
+  await page.getByRole("link", { name: /Sentence helper/ }).click();
+  await expect(page).toHaveURL(/\/dictionary\/sentence\/$/);
+  await page.getByRole("button", { name: "Ich stehe jeden Tag um sieben Uhr auf." }).click();
+  await expect(page.getByText('"auf" at the end belongs to the verb: aufstehen.')).toBeVisible();
+  await expect(page.getByText("I get up every day at seven clock")).toBeVisible();
+  await page.getByRole("link", { name: /^stehe/ }).click();
+  await expect(page).toHaveURL(/\/dictionary\/aufstehen\/$/);
+});
