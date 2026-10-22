@@ -83,5 +83,5 @@ test("progress, review deck and search use IndexedDB", async ({ page }) => {
     .getByRole("option", { name: /möchten/ })
     .first()
     .click();
-  await expect(page).toHaveURL(/\/learn\/modal-verbs\/#vocab$/);
+  await expect(page).toHaveURL(/\/dictionary\/moechten\/$/);
 });

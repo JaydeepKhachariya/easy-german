@@ -1,3 +1,6 @@
+import Link from "next/link";
+import { BookTextIcon } from "lucide-react";
+
 import { PlayButton } from "@/components/audio/play-button";
 import { NounChip } from "@/components/visualizers/article";
 import type { VocabItem } from "@/content/schema";
@@ -25,6 +28,14 @@ export function VocabList({ vocab }: { vocab: VocabItem[] }) {
               {v.en}
             </p>
           </div>
+          <Link
+            href={`/dictionary/?q=${encodeURIComponent(v.de)}`}
+            className="ml-auto shrink-0 rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+            aria-label={`Look up ${v.de} in the dictionary`}
+            title="Dictionary"
+          >
+            <BookTextIcon className="size-4" />
+          </Link>
         </li>
       ))}
     </ul>

@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { conjugate, type Conjugation } from "@/lib/conjugate";
 import { compare, decline } from "@/lib/decline";
+import { headwordOf } from "@/lib/dictionary-index";
 
 import { DictEntrySchema, type DictEntry, type DictEntryInput } from "./schema";
 import irregularVerbs from "./words/irregular-verbs";
@@ -32,11 +33,7 @@ export function entryHref(e: Pick<DictEntry, "id">) {
 }
 
 /** Headword as shown: "der Tisch", "sich anziehen", "gehen". */
-export function headword(e: DictEntry): string {
-  if (e.noun) return e.noun.pluralOnly ? `die ${e.word}` : `${e.noun.article} ${e.word}`;
-  if (e.verb?.reflexive) return `sich ${e.word}`;
-  return e.word;
-}
+export const headword = headwordOf;
 
 export function conjugationOf(e: DictEntry): Conjugation | null {
   return e.verb ? conjugate(e.word, e.verb) : null;

@@ -1,0 +1,55 @@
+import Fuse from "fuse.js";
+
+import { foldKey, type DictionaryIndex, type IndexEntry } from "./dictionary-index";
+
+export type DictHit = {
+  entry: IndexEntry;
+  /** Why it matched: "ging → Präteritum: ich, er/sie/es", "English: to go". */
+  reason: string;
+  kind: "form" | "german" | "english";
+};
+
+/**
+ * Lookup in three steps: an exact inflected form ("ging"), then the German headword
+ * (fuzzy, umlauts optional), then the English meaning.
+ */
+export function createDictionarySearch(index: DictionaryIndex) {
+  const items = index.entries.map((e, i) => ({
+    i,
+    de: foldKey(e.h.replace(/^(der|die|das|sich) /, "")),
+    en: e.en.map((m) => m.toLowerCase()),
+  }));
+  const de = new Fuse(items, { keys: ["de"], threshold: 0.3, ignoreLocation: true });
+  const en = new Fuse(items, {
+    keys: ["en"],
+    threshold: 0.3,
+    ignoreLocation: true,
+    includeMatches: true,
+  });
+
+  return (query: string, limit = 30): DictHit[] => {
+    const q = query.trim().replace(/[.!?,;:]+$/, "");
+    if (!q) return [];
+    const key = foldKey(q.replace(/^(der|die|das|sich|to) /i, ""));
+    const out: DictHit[] = [];
+    const seen = new Set<number>();
+    const push = (i: number, reason: string, kind: DictHit["kind"]) => {
+      if (seen.has(i)) return;
+      seen.add(i);
+      out.push({ entry: index.entries[i]!, reason, kind });
+    };
+
+    for (const hit of index.forms[foldKey(q)] ?? index.forms[key] ?? []) {
+      const isHeadword = items[hit.e]!.de === key;
+      push(hit.e, isHeadword ? "" : `${q} → ${hit.why}`, "form");
+    }
+    if (key.length >= 2) {
+      for (const r of de.search(key, { limit })) push(r.item.i, "", "german");
+      for (const r of en.search(q.toLowerCase(), { limit })) {
+        const m = r.matches?.[0]?.value;
+        push(r.item.i, m ? `English: ${m}` : "", "english");
+      }
+    }
+    return out.slice(0, limit);
+  };
+}

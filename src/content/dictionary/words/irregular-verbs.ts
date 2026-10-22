@@ -1,7 +1,7 @@
 import { v } from "../builders";
 
 /** Verbs that fit no pattern store their full tables. Everything else is generated. */
-export default [
+const words = [
   v(
     "sein",
     "to be",
@@ -209,3 +209,5 @@ export default [
     },
   ),
 ];
+
+export default words;
