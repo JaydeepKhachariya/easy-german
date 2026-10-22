@@ -44,3 +44,28 @@ test("no page scrolls sideways at 375px", async ({ page }) => {
     expect(overflow, path).toBeLessThanOrEqual(0);
   }
 });
+
+test("progress, review deck and search use IndexedDB", async ({ page }) => {
+  await page.goto("/learn/nicht-kein/");
+  const mc = page.locator('[data-exercise-type="multipleChoice"]').first();
+  await mc.getByLabel("keine").check();
+  await mc.getByRole("button", { name: "Check" }).click();
+  await expect(mc.getByText("Correct.")).toBeVisible();
+
+  // Add the lesson's words to the deck and review one.
+  await page.getByRole("button", { name: "Add words to my review deck" }).click();
+  await expect(page.getByRole("button", { name: "In your review deck" })).toBeVisible();
+
+  await page.goto("/dashboard/");
+  await expect(page.getByRole("link", { name: /Continue: Saying no/ })).toBeVisible();
+
+  await page.goto("/vocab/review/");
+  await page.getByRole("button", { name: "Show answer" }).click();
+  await page.getByRole("button", { name: /^Good/ }).click();
+  await expect(page.getByText(/left$/)).toBeVisible();
+
+  await page.getByRole("button", { name: /Search/ }).click();
+  await page.getByPlaceholder("Search lessons and words...").fill("moechten");
+  await page.getByRole("option", { name: /möchten/ }).first().click();
+  await expect(page).toHaveURL(/\/learn\/modal-verbs\/#vocab$/);
+});

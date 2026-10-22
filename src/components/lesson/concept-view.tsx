@@ -9,7 +9,9 @@ import { CATEGORY_LABELS, type Concept } from "@/content/schema";
 import { HelpsMisleads, HindiHint, MistakesBox } from "./callouts";
 import { ComparisonTable } from "./comparison-table";
 import { ExampleList } from "./example-list";
+import { AddVocabButton } from "./add-vocab-button";
 import { LessonExercises, type LessonSource } from "./lesson-exercises";
+import { LessonStatus } from "./lesson-status";
 import { RichText } from "./rich-text";
 import { Section } from "./section";
 import { VocabList } from "./vocab-list";
@@ -22,7 +24,6 @@ export function ConceptView({
   concept: c,
   source,
   prose,
-  vocabActions,
   footer,
   preview = false,
 }: {
@@ -30,8 +31,6 @@ export function ConceptView({
   source: LessonSource;
   /** Long-form MDX for core lessons. */
   prose?: React.ReactNode;
-  /** e.g. "Add to review deck" button. */
-  vocabActions?: React.ReactNode;
   /** Previous/next navigation. */
   footer?: React.ReactNode;
   preview?: boolean;
@@ -46,6 +45,12 @@ export function ConceptView({
             <ClockIcon /> {c.minutes} min
           </Badge>
           {source === "user" && <Badge className="bg-der text-background">My lesson</Badge>}
+          <LessonStatus
+            conceptId={c.id}
+            source={source}
+            total={c.exercises.length}
+            preview={preview}
+          />
           {c.status === "draft" && (
             <Badge variant="outline" className="border-warning/50 text-warning">
               Draft
@@ -115,9 +120,8 @@ export function ConceptView({
 
       <Section id="exercises" title="Exercises">
         <LessonExercises
-          conceptId={c.id}
+          concept={{ id: c.id, exercises: c.exercises, vocab: c.vocab }}
           source={source}
-          exercises={c.exercises}
           preview={preview}
         />
       </Section>
@@ -125,7 +129,7 @@ export function ConceptView({
       {c.vocab.length > 0 && (
         <Section id="vocab" title="Vocabulary">
           <VocabList vocab={c.vocab} />
-          {vocabActions}
+          {!preview && <AddVocabButton conceptId={c.id} source={source} vocab={c.vocab} />}
         </Section>
       )}
 

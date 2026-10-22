@@ -63,3 +63,25 @@ function rank(unit: string) {
 function unitFromCategory(c: Category) {
   return c === "exam" ? "Exam" : c === "vocabulary" ? "Vocabulary" : "Grammar";
 }
+
+/** Lightweight list for client components (dashboard, search) without lesson bodies. */
+export type CatalogEntry = Pick<
+  Concept,
+  "id" | "slug" | "order" | "titleEn" | "titleDe" | "minutes" | "status" | "category"
+> & { unit: string; exerciseCount: number; href: string };
+
+export function getCatalog(): CatalogEntry[] {
+  return CONCEPTS.map((c) => ({
+    id: c.id,
+    slug: c.slug,
+    order: c.order,
+    titleEn: c.titleEn,
+    titleDe: c.titleDe,
+    minutes: c.minutes,
+    status: c.status,
+    category: c.category,
+    unit: c.unit ?? unitFromCategory(c.category),
+    exerciseCount: c.exercises.length,
+    href: conceptHref(c),
+  }));
+}

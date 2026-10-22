@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "pnpm search-index && next dev",
+    "build": "pnpm search-index && next build",
     "start": "serve out -l 3000",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
@@ -14,7 +14,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "check": "pnpm lint && pnpm typecheck && pnpm format:check && pnpm test && pnpm build",
-    "german": "tsx scripts/print-german.ts"
+    "german": "tsx scripts/print-german.ts",
+    "search-index": "tsx scripts/build-search-index.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^6.0.0",

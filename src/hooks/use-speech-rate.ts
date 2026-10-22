@@ -1,6 +1,7 @@
 "use client";
 
-/** Speech rate. Phase 3 reads this from the settings table in IndexedDB. */
+import { useSetting } from "./use-setting";
+
 export function useSpeechRate(): number {
-  return 0.9;
+  return useSetting("speechRate")[0];
 }
