@@ -6,21 +6,33 @@ It's a local-first web app. There is no backend, no login and no server database
 
 ## Quick start
 
-You need Node.js 20 or newer and pnpm 10.
+You need Node.js 20.9 or newer. pnpm is recommended, but npm works too.
 
 ```bash
+# with pnpm (uses the committed lockfile)
+corepack enable        # once, if pnpm isn't installed
 pnpm install
-pnpm dev          # http://localhost:3000
+pnpm dev               # http://localhost:3000
+
+# or with npm
+npm install            # .npmrc sets legacy-peer-deps, see below
+npm run dev
 ```
 
 Production build and local preview:
 
 ```bash
-pnpm build        # static export into out/
-pnpm start        # serves out/ on http://localhost:3000
+pnpm build             # or: npm run build   → static export into out/
+pnpm start             # or: npm start       → serves out/ on http://localhost:3000
 ```
 
+Before the first `test:e2e` run on your own machine, install a browser once: `npx playwright install chromium`.
+
+Why `.npmrc` has `legacy-peer-deps=true`: `@hookform/resolvers` lists optional peer dependencies that conflict with each other (two major versions of `effect`). pnpm ignores optional peers you don't use; npm refuses to install unless told to do the same. Nothing in the app uses `effect`.
+
 ### Scripts
+
+With npm, use `npm run <script>` (`npm start` and `npm test` work as is).
 
 | Script                              | What it does                                                   |
 | ----------------------------------- | -------------------------------------------------------------- |

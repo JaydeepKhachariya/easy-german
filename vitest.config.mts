@@ -7,7 +7,7 @@ import { defineConfig, type Plugin } from "vitest/config";
 const mdxStub: Plugin = {
   name: "mdx-stub",
   enforce: "pre",
-  transform(_code, id) {
+  transform(_code: string, id: string) {
     if (id.endsWith(".mdx")) return { code: "export default function MDXStub() { return null; }" };
   },
 };

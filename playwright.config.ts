@@ -17,7 +17,7 @@ export default defineConfig({
   },
   // Serves the static export. Run `pnpm build` first.
   webServer: {
-    command: "pnpm exec serve out -l 3100",
+    command: "npx serve out -l 3100",
     url: "http://localhost:3100",
     reuseExistingServer: !process.env.CI,
   },
