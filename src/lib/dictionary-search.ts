@@ -39,8 +39,17 @@ export function createDictionarySearch(index: DictionaryIndex) {
       out.push({ entry: index.entries[i]!, reason, kind });
     };
 
-    for (const hit of index.forms[foldKey(q)] ?? index.forms[key] ?? []) {
-      const isHeadword = items[hit.e]!.de === key;
+    // Exact headwords first (weiß → the adjective), then inflected forms (weiß → wissen).
+    // Then full forms before split ones (nimm → nehmen before "nimm ... mit").
+    const rank = (h: { isHeadword: boolean; partial: boolean }) =>
+      h.isHeadword ? 0 : h.partial ? 2 : 1;
+    const formHits = (index.forms[foldKey(q)] ?? index.forms[key] ?? []).map((hit) => ({
+      hit,
+      isHeadword: items[hit.e]!.de === key,
+      partial: hit.why.split(" · ").every((label) => label.includes(', with "')),
+    }));
+    formHits.sort((a, b) => rank(a) - rank(b));
+    for (const { hit, isHeadword } of formHits) {
       push(hit.e, isHeadword ? "" : `${q} → ${hit.why}`, "form");
     }
     if (key.length >= 2) {

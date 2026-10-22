@@ -72,6 +72,7 @@ export function allNounForms(word: string, n: NounInfo): string[] {
 /* ---------- adjectives ---------- */
 
 function comparisonBase(word: string): string {
+  if (word.endsWith("e")) return word.slice(0, -1); // leise → leis-er
   if (word.endsWith("el")) return `${word.slice(0, -2)}l`; // dunkel → dunkl-er
   if (/(au|eu)er$/.test(word)) return `${word.slice(0, -2)}r`; // teuer → teur-er
   return word;
@@ -80,7 +81,9 @@ function comparisonBase(word: string): string {
 export function compare(word: string, a: AdjectiveInfo = { noComparison: false }) {
   if (a.noComparison) return null;
   const comparative = a.comparative ?? `${comparisonBase(word)}er`;
-  const needsE = /([dtsßxz]|sch|[aeiouäöü]h?)$/.test(word) && !word.endsWith("isch");
+  // The -isch suffix (praktisch, typisch) takes -sten; frisch only looks like it.
+  const ischSuffix = /[aeiouäöü][^aeiouäöü]*isch$/.test(word);
+  const needsE = /([dtsßxz]|sch|[aiouäöü]h?|eh?)$/.test(word) && !ischSuffix && !word.endsWith("e");
   const superlative = a.superlative ?? `${word}${needsE ? "esten" : "sten"}`;
   return { positive: word, comparative, superlative: `am ${superlative}` };
 }

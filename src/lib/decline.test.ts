@@ -111,6 +111,19 @@ describe("compare", () => {
     expect(compare("heiß")!.superlative).toBe("am heißesten");
     expect(compare("neu")!.superlative).toBe("am neuesten");
     expect(compare("praktisch")!.superlative).toBe("am praktischsten");
+    expect(compare("frisch")!.superlative).toBe("am frischesten");
+  });
+
+  it("adjectives ending in -e", () => {
+    expect(compare("leise")).toEqual({
+      positive: "leise",
+      comparative: "leiser",
+      superlative: "am leisesten",
+    });
+    expect(compare("müde")!.superlative).toBe("am müdesten");
+    expect(allAdjectiveForms("leise")).toEqual(
+      expect.arrayContaining(["leise", "leisen", "leiser"]),
+    );
   });
 
   it("drops the e in -el and -euer", () => {

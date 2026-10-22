@@ -33,9 +33,42 @@ describe("dictionary search", () => {
       entry: { id: "koennen" },
       reason: "konnte → Präteritum: ich, er/sie/es",
     });
-    expect(top("weiß")!.entry.id).toBe("wissen");
-    expect(top("weiss")!.entry.id).toBe("wissen");
+    // weiß is a headword (white) and a form of wissen: the headword comes first.
+    expect(
+      search("weiß")
+        .map((h) => h.entry.id)
+        .slice(0, 2),
+    ).toEqual(["weiss", "wissen"]);
+    expect(search("weiss")[1]).toMatchObject({
+      entry: { id: "wissen" },
+      reason: "weiss → Präsens: ich, er/sie/es",
+    });
     expect(top("bin")!.entry.id).toBe("sein");
+  });
+
+  it("finds strong verb, separable and noun forms", () => {
+    expect(top("ging")).toMatchObject({
+      entry: { id: "gehen" },
+      reason: "ging → Präteritum: ich, er/sie/es",
+    });
+    expect(top("gegangen")!.entry.id).toBe("gehen");
+    expect(top("stehe auf")).toMatchObject({
+      entry: { id: "aufstehen" },
+      reason: "stehe auf → Präsens: ich",
+    });
+    expect(top("Häusern")).toMatchObject({
+      entry: { id: "haus" },
+      reason: "Häusern → Dativ plural",
+    });
+    expect(top("haeuser")!.entry.id).toBe("haus");
+    expect(top("Studenten")!.entry.id).toBe("student");
+    expect(top("isst")!.entry.id).toBe("essen");
+    expect(top("größer")).toMatchObject({
+      entry: { id: "gross" },
+      reason: "größer → comparative · with an ending",
+    });
+    expect(top("nimm")!.entry.id).toBe("nehmen");
+    expect(search("ziehe").map((h) => h.entry.id)).toContain("sich-anziehen");
   });
 
   it("searches English meanings", () => {

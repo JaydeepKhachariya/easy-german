@@ -58,13 +58,15 @@ export function labelledForms(e: DictEntry): Map<string, string> {
       for (const [f, persons] of byForm) {
         const label = `${TENSE_LABELS[t.key].de}: ${persons.join(", ")}`;
         add(f, label);
-        const first = f.split(" ")[0]!;
-        if (first !== f) add(first, label);
+        const [first, ...rest] = f.split(" ");
+        if (rest.length) add(first!, `${label}, with "${rest.join(" ")}"`);
       }
     }
     c.imperative?.forEach((f, i) => {
-      add(f, `Imperativ (${["du", "ihr", "Sie"][i]})`);
-      add(f.split(" ")[0]!, `Imperativ (${["du", "ihr", "Sie"][i]})`);
+      const label = `Imperativ (${["du", "ihr", "Sie"][i]})`;
+      add(f, label);
+      const [first, ...rest] = f.split(" ");
+      if (rest.length && i === 0) add(first!, `${label}, with "${rest.join(" ")}"`);
     });
   } else if (e.noun) {
     const n = e.noun;

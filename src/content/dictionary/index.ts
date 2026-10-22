@@ -5,10 +5,38 @@ import { compare, decline } from "@/lib/decline";
 import { headwordOf } from "@/lib/dictionary-index";
 
 import { DictEntrySchema, type DictEntry, type DictEntryInput } from "./schema";
+import adjectives from "./words/adjectives";
+import functionWords from "./words/function-words";
 import irregularVerbs from "./words/irregular-verbs";
+import nounsCityTravel from "./words/nouns-city-travel";
+import nounsFood from "./words/nouns-food";
+import nounsHealth from "./words/nouns-health";
+import nounsHome from "./words/nouns-home";
+import nounsLeisure from "./words/nouns-leisure";
+import nounsPeople from "./words/nouns-people";
+import nounsShopping from "./words/nouns-shopping";
+import nounsTimeNature from "./words/nouns-time-nature";
+import nounsWorkSchool from "./words/nouns-work-school";
+import verbsRegular from "./words/verbs-regular";
+import verbsStrong from "./words/verbs-strong";
 
 /** Every word file. Add new files here. */
-const RAW: DictEntryInput[] = [...irregularVerbs];
+const RAW: DictEntryInput[] = [
+  ...adjectives,
+  ...functionWords,
+  ...irregularVerbs,
+  ...nounsCityTravel,
+  ...nounsFood,
+  ...nounsHealth,
+  ...nounsHome,
+  ...nounsLeisure,
+  ...nounsPeople,
+  ...nounsShopping,
+  ...nounsTimeNature,
+  ...nounsWorkSchool,
+  ...verbsRegular,
+  ...verbsStrong,
+];
 
 function parse(input: DictEntryInput): DictEntry {
   const r = DictEntrySchema.safeParse(input);
