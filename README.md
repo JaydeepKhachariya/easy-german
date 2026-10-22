@@ -2,6 +2,8 @@
 
 German A1 lessons for English speakers, built around one idea: start from how English does it, then show what German keeps and what it changes. The course targets the Goethe Start Deutsch 1 exam.
 
+There is also a German–English dictionary of about 730 A1 words. Each word has its own page with meanings, examples and, for verbs and nouns, full conjugation or declension tables. A sentence helper breaks a pasted German sentence into words and shows where the verb parts go.
+
 It's a local-first web app. There is no backend, no login and no server database. Lessons are static pages. Progress, the vocab review deck and lessons you write yourself are stored in your browser (IndexedDB).
 
 ## Quick start
@@ -34,21 +36,21 @@ Why `.npmrc` has `legacy-peer-deps=true`: `@hookform/resolvers` lists optional p
 
 With npm, use `npm run <script>` (`npm start` and `npm test` work as is).
 
-| Script                              | What it does                                                   |
-| ----------------------------------- | -------------------------------------------------------------- |
-| `pnpm dev`                          | Builds the search index, then starts the dev server            |
-| `pnpm build`                        | Builds the search index, then writes the static site to `out/` |
-| `pnpm start`                        | Serves `out/` with `serve` (static export has no `next start`) |
-| `pnpm lint`                         | ESLint                                                         |
-| `pnpm typecheck`                    | `tsc --noEmit`                                                 |
-| `pnpm format` / `pnpm format:check` | Prettier (with the Tailwind class sorter)                      |
-| `pnpm test`                         | Vitest unit tests                                              |
-| `pnpm test:e2e`                     | Playwright tests against `out/` (run `pnpm build` first)       |
-| `pnpm check`                        | lint, typecheck, format check, unit tests and build in one go  |
-| `pnpm german`                       | Prints every German sentence in the course for review          |
-| `pnpm search-index`                 | Rebuilds `public/search-index.json`                            |
+| Script                              | What it does                                                    |
+| ----------------------------------- | --------------------------------------------------------------- |
+| `pnpm dev`                          | Builds the search index, then starts the dev server             |
+| `pnpm build`                        | Builds the search index, then writes the static site to `out/`  |
+| `pnpm start`                        | Serves `out/` with `serve` (static export has no `next start`)  |
+| `pnpm lint`                         | ESLint                                                          |
+| `pnpm typecheck`                    | `tsc --noEmit`                                                  |
+| `pnpm format` / `pnpm format:check` | Prettier (with the Tailwind class sorter)                       |
+| `pnpm test`                         | Vitest unit tests                                               |
+| `pnpm test:e2e`                     | Playwright tests against `out/` (run `pnpm build` first)        |
+| `pnpm check`                        | lint, typecheck, format check, unit tests and build in one go   |
+| `pnpm german`                       | Prints every German sentence in the course for review           |
+| `pnpm search-index`                 | Rebuilds `public/search-index.json` and `dictionary-index.json` |
 
-`pnpm german modal-verbs` prints one lesson. `pnpm german --no-wrong` hides the sentences that are wrong on purpose (mistake boxes and wrong quiz options).
+`pnpm german modal-verbs` prints one lesson. `pnpm german --dictionary` prints the dictionary examples, verb principal parts, plurals and comparisons instead. `pnpm german --no-wrong` hides the sentences that are wrong on purpose (mistake boxes and wrong quiz options).
 
 ## Hosting
 
@@ -66,6 +68,7 @@ NEXT_PUBLIC_BASE_PATH=/easy-german pnpm build
 src/
   app/                      routes (all static)
     learn/[slug]/           core lessons, one page per concept (generateStaticParams)
+    dictionary/             search, [id]/ (one page per word), sentence/ (sentence helper)
     my-lessons/             list, new, edit?id=..., view?id=... (client-rendered from IndexedDB)
     dashboard/ vocab/review/ exam/ settings/
   components/
@@ -73,6 +76,7 @@ src/
     lesson/                 ConceptView and its sections (shared by core and user lessons)
     exercise/               one component per exercise type, umlaut bar, feedback
     tables/                 conjugation, articles (colour-coded), generic tables
+    dictionary/             entry page, verb and noun tables, search, sentence helper
     visualizers/            article colours, word-order diagram
     editor/                 lesson editor, import dialog
     my-lessons/ dashboard/ review/ settings/ layout/ audio/
@@ -81,6 +85,7 @@ src/
     index.ts                registry: validates every concept at import
     prose.ts                slug → MDX "More detail" component
     concepts/<unit>/<slug>/ concept.ts (+ optional more.mdx)
+    dictionary/             schema.ts, builders.ts, index.ts, words/*.ts
   lib/
     check-answer.ts         answer checker
     srs.ts                  SM-2 scheduling
@@ -89,6 +94,11 @@ src/
     import-export.ts        lesson files, backups, migrations of file formats
     lesson-draft.ts         editor form model ↔ Concept
     search.ts               Fuse.js search over core content, user lessons and the deck
+    conjugate.ts            verb tables from the infinitive plus the irregular parts
+    decline.ts              noun declension and adjective comparison
+    dictionary-index.ts     every inflected form → its entry, for "type any form" search
+    dictionary-search.ts    dictionary search (forms first, then fuzzy German and English)
+    sentence-helper.ts      word-by-word sentence analysis
 scripts/                    print-german.ts, build-search-index.ts
 e2e/                        Playwright tests
 ```
@@ -128,6 +138,54 @@ A concept that doesn't match the schema fails the build with a readable error, f
 Explanations are in plain, short English. Start with what English does. No filler, no hype words. All examples and exercises must be original.
 
 Explanation fields use a small text format: a blank line starts a new paragraph, lines starting with `- ` or `1. ` make lists, and `**bold**` and `*italic*` work. Nothing else is interpreted, which keeps imported lessons from injecting markup.
+
+## The dictionary
+
+Entries live in `src/content/dictionary/words/`, one file per group (strong verbs, food nouns, function words and so on). Each entry stores only what can't be worked out from rules. Conjugation, declension and comparison are generated by `src/lib/conjugate.ts` and `src/lib/decline.ts`, so a regular verb needs nothing beyond its infinitive.
+
+### Adding a word
+
+Use the helpers in `src/content/dictionary/builders.ts`. `en` is one string; separate meanings with `;`. Examples are `[German, English]` pairs, at most four.
+
+```ts
+// Strong verb: changed present stem, Präteritum and Partizip II
+v(
+  "abfahren",
+  "to leave, to depart",
+  { separable: "ab", aux: "sein", presentStem: "fähr", past: "fuhr", participle: "abgefahren" },
+  ["travel"],
+  [["Der Zug fährt um acht Uhr ab.", "The train leaves at eight."]],
+),
+
+// Noun: article, word, plural (null if there is none)
+n("die", "Wohnung", "Wohnungen", "flat, apartment", ["home"], [...]),
+
+// Adjective: comparison only when it is irregular
+a("gut", "good; well", ["basics"], [...], { comparative: "besser", superlative: "besten" }),
+
+// Anything else
+w("preposition", "mit", "with", ["grammar"], [...]),
+```
+
+What to store:
+
+- Verbs. `separable` for the prefix, `aux: "sein"` for Perfekt with sein, `reflexive: true` for sich verbs (leave "sich" out of the word), `presentStem` when du and er/sie/es change the vowel, and `past` plus `participle` for strong and mixed verbs. Only verbs that fit no pattern (sein, haben, werden, wissen, the modals) store full tables in `presentForms`, `pastForms` and `subjunctiveForms`.
+- Nouns. `nDeclension: "n"` or `"en"` for weak masculine nouns (der Student, den Studenten), `genitive` when the default ending is wrong, `pluralOnly` for words like Eltern, and `feminine` for the female form.
+- Adjectives. `comparative` and `superlative` (without "am") when they are irregular, `noComparison` for words that don't compare.
+
+The id is made from the word (ä → ae, ß → ss). Pass `id` yourself when two entries share a word, as with `sein` (to be) and `sein-possessive`. The full schema is in `src/content/dictionary/schema.ts`. An entry that doesn't match it fails the build.
+
+After adding words, run `pnpm german --dictionary` and check the principal parts and plurals, then `pnpm test`. The tests check that ids are unique, that every verb conjugates, that linked lessons exist and that every entry has an example.
+
+### Search and word pages
+
+`scripts/build-search-index.ts` writes `public/dictionary-index.json`: a short summary of each entry plus every inflected form, labelled ("ging → Präteritum: ich, er/sie/es"). The search page loads it once, so you can type "ging", "Häusern" or "stehe auf" and land on the right word. Umlauts are optional. Each word also has a static page at `/dictionary/<id>/` with its tables, and a button that adds it to the review deck.
+
+### Sentence helper
+
+`/dictionary/sentence/` looks up each word of a sentence in the same index. It picks the most likely entry from context (a capital letter mid-sentence suggests a noun), finds the conjugated verb, and checks the end of the clause for a separable prefix, a Partizip II or an infinitive. It also explains contractions like `am` (an + dem) and lists words it doesn't know.
+
+It doesn't translate. The English line under each sentence is a word-by-word gloss, and the page says so. Real translation needs a service like DeepL, which would mean an API key and sending text off the device. That doesn't fit a local-first app, so it was left out.
 
 ## Schema reference
 
@@ -290,7 +348,7 @@ Files from a newer format version are refused with a clear message. Older versio
 
 **One renderer.** `ConceptView` uses no hooks of its own. It renders core lessons as server components (static HTML with client islands for exercises and audio) and user lessons inside client pages. The editor preview uses the same component.
 
-**Search.** `scripts/build-search-index.ts` writes `public/search-index.json` from the core content at build time. The search dialog (Ctrl+K or `/`) loads Fuse.js, that index, the user's lessons and the review deck only when it's opened. Search ignores umlauts: "moechte" and "mochte" both find "möchte".
+**Search.** `scripts/build-search-index.ts` writes `public/search-index.json` from the core content and the dictionary at build time. The search dialog (Ctrl+K or `/`) loads Fuse.js, that index, the user's lessons and the review deck only when it's opened. Search ignores umlauts: "moechte" and "mochte" both find "möchte".
 
 **Audio.** Browser SpeechSynthesis with a de-DE voice if there is one, otherwise any German voice. Without one, the app explains how to install a German voice on Windows, macOS and Android.
 
@@ -298,8 +356,8 @@ Files from a newer format version are refused with a clear message. Older versio
 
 ## Testing
 
-- `pnpm test`: the answer checker, SM-2, the review queue, progress and weak areas, import/export and backups (with fake-indexeddb), the editor's draft conversion (every core lesson must survive draft → concept unchanged), search, and content integrity.
-- `pnpm test:e2e`: Playwright against the static build at 375px. It answers exercises, checks the progress, review and search flow, creates, exports, re-imports and deletes a user lesson, exports and merges a backup, and checks that no page scrolls sideways.
+- `pnpm test`: the answer checker, SM-2, the review queue, progress and weak areas, import/export and backups (with fake-indexeddb), the editor's draft conversion (every core lesson must survive draft → concept unchanged), search, content integrity, verb conjugation, noun declension, dictionary search and the sentence helper.
+- `pnpm test:e2e`: Playwright against the static build at 375px. It answers exercises, checks the progress, review and search flow, searches the dictionary and runs the sentence helper, creates, exports, re-imports and deletes a user lesson, exports and merges a backup, and checks that no page scrolls sideways.
 - `pnpm german`: a human review of every German sentence. Run it after any content change.
 
 ## Status
