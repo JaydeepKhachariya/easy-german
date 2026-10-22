@@ -11,7 +11,7 @@ export function DesktopNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="hidden items-center gap-1 md:flex" aria-label="Main">
+    <nav className="hidden items-center gap-1 lg:flex" aria-label="Main">
       {NAV_ITEMS.map(({ href, label }) => (
         <Link
           key={href}
