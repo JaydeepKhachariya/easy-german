@@ -15,6 +15,7 @@ describe("search", () => {
     const hits = (q: string) => search(q).map((d) => d.title);
     expect(hits("möchten")).toContain("möchten");
     expect(hits("moechten")).toContain("möchten");
+    expect(hits("mochte")).toContain("möchten");
   });
 
   it("finds vocab and links to the lesson", () => {
