@@ -66,6 +66,9 @@ test("progress, review deck and search use IndexedDB", async ({ page }) => {
 
   await page.getByRole("button", { name: /Search/ }).click();
   await page.getByPlaceholder("Search lessons and words...").fill("moechten");
-  await page.getByRole("option", { name: /möchten/ }).first().click();
+  await page
+    .getByRole("option", { name: /möchten/ })
+    .first()
+    .click();
   await expect(page).toHaveURL(/\/learn\/modal-verbs\/#vocab$/);
 });
