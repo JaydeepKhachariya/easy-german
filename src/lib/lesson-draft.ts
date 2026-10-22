@@ -207,10 +207,8 @@ export function exerciseToDraft(e: Exercise): ExerciseDraft {
     hint: e.hint ?? "",
     explanation: e.explanation ?? "",
   });
-  const join = (ws: string[]) => {
-    const s = ws.join(" ");
-    return s.charAt(0).toUpperCase() + s.slice(1);
-  };
+  // Tiles are kept exactly as stored, so a lesson survives editing unchanged.
+  const join = (ws: string[]) => ws.join(" ");
   switch (e.type) {
     case "multipleChoice":
       return {

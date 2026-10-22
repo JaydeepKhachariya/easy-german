@@ -13,8 +13,8 @@ export function GenericTable({
     <TableShell title={title}>
       <thead>
         <tr>
-          {headers.map((h) => (
-            <th key={h} className={th} scope="col">
+          {headers.map((h, i) => (
+            <th key={i} className={th} scope="col">
               {h}
             </th>
           ))}

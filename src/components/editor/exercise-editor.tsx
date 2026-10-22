@@ -89,7 +89,10 @@ function TypeFields({ index }: { index: number }) {
       return (
         <>
           <div className="space-y-1">
-            <Small htmlFor={id("w")}>Correct German sentence. It is split into word tiles.</Small>
+            <Small htmlFor={id("w")}>
+              Correct German sentence. It is split into word tiles. The first tile is capitalized on
+              screen.
+            </Small>
             <Input
               id={id("w")}
               lang="de"

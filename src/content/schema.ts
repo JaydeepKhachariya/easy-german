@@ -125,7 +125,8 @@ const GenericTableSchema = z
   .object({
     kind: z.enum(["endings", "generic"]),
     title: z.string().trim().optional(),
-    headers: z.array(text).min(1),
+    /** Empty strings are fine, e.g. for a blank top-left cell. */
+    headers: z.array(z.string().trim()).min(1),
     rows: z.array(z.array(z.string().trim())).min(1),
   })
   .superRefine((t, ctx) => {

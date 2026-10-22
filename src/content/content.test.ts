@@ -1,6 +1,6 @@
 import { checkAnswer } from "@/lib/check-answer";
 
-import { CONCEPTS, parseConcept } from ".";
+import { CONCEPTS, getConcept, parseConcept } from ".";
 import { RAW_CONCEPTS } from "./concepts";
 import { collectGerman } from "./german-sentences";
 import { PROSE } from "./prose";
@@ -16,6 +16,30 @@ describe("core content", () => {
     expect(unique(CONCEPTS.map((c) => c.id))).toBe(true);
     expect(unique(CONCEPTS.map((c) => c.slug))).toBe(true);
     expect(unique(CONCEPTS.map((c) => c.order))).toBe(true);
+  });
+
+  it("only lists prerequisites that exist and come earlier in the track", () => {
+    const order = new Map(CONCEPTS.map((c) => [c.id, c.order]));
+    for (const c of CONCEPTS) {
+      for (const p of c.prerequisites) {
+        expect(order.has(p), `${c.slug} needs missing "${p}"`).toBe(true);
+        expect(order.get(p)!, `${c.slug} needs later "${p}"`).toBeLessThan(c.order);
+      }
+    }
+  });
+
+  it("covers the required common mistakes", () => {
+    const all = (slug: string) =>
+      getConcept(slug)!
+        .mistakes.map((m) => `${m.wrong} ${m.right}`)
+        .join(" | ");
+    expect(all("modal-verbs")).toMatch(/schwimme\b/); // conjugated main verb after a modal
+    expect(all("modal-verbs")).toMatch(/wolle/);
+    expect(all("perfekt")).toMatch(/habe nach Berlin gefahren/); // haben with a movement verb
+    expect(all("perfekt")).toMatch(/geschreibet|geschlafet/); // -et on strong verbs
+    expect(all("strong-verbs")).toMatch(/Ich fähre|Wir sprichen/); // vowel change on ich/wir
+    expect(all("nouns-and-articles")).toMatch(/ein auto/); // lowercase noun
+    expect(all("exam-letters")).toMatch(/dir/); // du/dir mixed into a Sie letter
   });
 
   it("maps every MDX file to a real concept", () => {

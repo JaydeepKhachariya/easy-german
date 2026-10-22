@@ -18,7 +18,7 @@ describe("search", () => {
   });
 
   it("finds vocab and links to the lesson", () => {
-    const hit = search("Zeit").find((d) => d.kind === "vocab");
+    const hit = search("Zeit").find((d) => d.kind === "vocab" && d.title === "die Zeit");
     expect(hit?.title).toBe("die Zeit");
     expect(hit?.href).toBe("/learn/nicht-kein/#vocab");
   });

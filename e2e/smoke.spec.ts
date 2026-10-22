@@ -1,3 +1,5 @@
+import fs from "node:fs";
+
 import { expect, test } from "@playwright/test";
 
 test("home page links to the course", async ({ page }) => {
@@ -30,13 +32,24 @@ test("a lesson renders and checks an answer", async ({ page }) => {
 });
 
 test("no page scrolls sideways at 375px", async ({ page }) => {
-  for (const path of [
+  // Every static page, including all lessons in out/learn.
+  const lessons = fs
+    .readdirSync("out/learn", { withFileTypes: true })
+    .filter((d) => d.isDirectory())
+    .map((d) => `/learn/${d.name}/`);
+  const pages = [
     "/",
     "/learn/",
-    "/learn/verb-position-2/",
-    "/learn/nicht-kein/",
-    "/learn/perfekt/",
-  ]) {
+    "/exam/",
+    "/dashboard/",
+    "/vocab/review/",
+    "/my-lessons/",
+    "/my-lessons/new/",
+    "/settings/",
+    ...lessons,
+  ];
+  expect(lessons.length).toBeGreaterThan(40);
+  for (const path of pages) {
     await page.goto(path);
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
