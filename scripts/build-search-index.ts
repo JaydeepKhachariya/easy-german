@@ -1,14 +1,19 @@
 /**
  * Writes the client-side search files into public/. Runs before dev and build.
  * - search-index.json: lessons + vocab for the Ctrl+K dialog
- * - dictionary-index.json: dictionary entries and every inflected form
+ * - dictionary-index.<hash>.json: dictionary entries and every inflected form
  */
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 import { CONCEPTS, conceptHref } from "../src/content";
 import { DICTIONARY, entryHref } from "../src/content/dictionary";
-import { buildDictionaryIndex, headwordOf } from "../src/lib/dictionary-index";
+import {
+  DICTIONARY_INDEX as dict,
+  DICTIONARY_INDEX_FILE,
+  DICTIONARY_INDEX_JSON,
+} from "../src/lib/dictionary-file";
+import { headwordOf } from "../src/lib/dictionary-index";
 import { buildCoreDocs, dedupe, type SearchDoc } from "../src/lib/search";
 
 const pub = path.join(import.meta.dirname, "..", "public");
@@ -30,9 +35,12 @@ const docs = dedupe([
 ]);
 writeFileSync(path.join(pub, "search-index.json"), JSON.stringify(docs));
 
-const dict = buildDictionaryIndex(DICTIONARY);
-writeFileSync(path.join(pub, "dictionary-index.json"), JSON.stringify(dict));
+// Remove files from earlier builds, then write the current one.
+for (const f of readdirSync(pub)) {
+  if (/^dictionary-index(\.[0-9a-f]+)?\.json$/.test(f)) rmSync(path.join(pub, f));
+}
+writeFileSync(path.join(pub, DICTIONARY_INDEX_FILE), DICTIONARY_INDEX_JSON);
 
 console.log(
-  `search index: ${docs.length} entries; dictionary: ${dict.entries.length} words, ${Object.keys(dict.forms).length} forms`,
+  `search index: ${docs.length} entries; ${DICTIONARY_INDEX_FILE}: ${dict.entries.length} words, ${Object.keys(dict.forms).length} forms`,
 );

@@ -6,4 +6,4 @@ playwright-report
 test-results
 coverage
 public/search-index.json
-public/dictionary-index.json
+public/dictionary-index*.json

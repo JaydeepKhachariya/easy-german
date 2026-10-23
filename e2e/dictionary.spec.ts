@@ -30,3 +30,16 @@ test("sentence helper explains word order", async ({ page }) => {
   await page.getByRole("link", { name: /^stehe/ }).click();
   await expect(page).toHaveURL(/\/dictionary\/aufstehen\/$/);
 });
+
+test("the word list loads in pages as you scroll", async ({ page, request }) => {
+  // The first words are in the HTML itself, before any script runs.
+  const html = await (await request.get("/dictionary/")).text();
+  expect(html).toContain('href="/dictionary/ab/"');
+
+  await page.goto("/dictionary/");
+  await expect(page.getByText(/^\d+ words$/)).toBeVisible();
+  const rows = page.getByRole("list").last().getByRole("listitem");
+  await expect(rows).toHaveCount(40);
+  await page.getByText("Loading more words...").scrollIntoViewIfNeeded();
+  await expect(rows).toHaveCount(80);
+});

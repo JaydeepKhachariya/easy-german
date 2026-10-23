@@ -36,19 +36,19 @@ Why `.npmrc` has `legacy-peer-deps=true`: `@hookform/resolvers` lists optional p
 
 With npm, use `npm run <script>` (`npm start` and `npm test` work as is).
 
-| Script                              | What it does                                                    |
-| ----------------------------------- | --------------------------------------------------------------- |
-| `pnpm dev`                          | Builds the search index, then starts the dev server             |
-| `pnpm build`                        | Builds the search index, then writes the static site to `out/`  |
-| `pnpm start`                        | Serves `out/` with `serve` (static export has no `next start`)  |
-| `pnpm lint`                         | ESLint                                                          |
-| `pnpm typecheck`                    | `tsc --noEmit`                                                  |
-| `pnpm format` / `pnpm format:check` | Prettier (with the Tailwind class sorter)                       |
-| `pnpm test`                         | Vitest unit tests                                               |
-| `pnpm test:e2e`                     | Playwright tests against `out/` (run `pnpm build` first)        |
-| `pnpm check`                        | lint, typecheck, format check, unit tests and build in one go   |
-| `pnpm german`                       | Prints every German sentence in the course for review           |
-| `pnpm search-index`                 | Rebuilds `public/search-index.json` and `dictionary-index.json` |
+| Script                              | What it does                                                      |
+| ----------------------------------- | ----------------------------------------------------------------- |
+| `pnpm dev`                          | Builds the search index, then starts the dev server               |
+| `pnpm build`                        | Builds the search index, then writes the static site to `out/`    |
+| `pnpm start`                        | Serves `out/` with `serve` (static export has no `next start`)    |
+| `pnpm lint`                         | ESLint                                                            |
+| `pnpm typecheck`                    | `tsc --noEmit`                                                    |
+| `pnpm format` / `pnpm format:check` | Prettier (with the Tailwind class sorter)                         |
+| `pnpm test`                         | Vitest unit tests                                                 |
+| `pnpm test:e2e`                     | Playwright tests against `out/` (run `pnpm build` first)          |
+| `pnpm check`                        | lint, typecheck, format check, unit tests and build in one go     |
+| `pnpm german`                       | Prints every German sentence in the course for review             |
+| `pnpm search-index`                 | Rebuilds `public/search-index.json` and `dictionary-index.*.json` |
 
 `pnpm german modal-verbs` prints one lesson. `pnpm german --dictionary` prints the dictionary examples, verb principal parts, plurals and comparisons instead. `pnpm german --no-wrong` hides the sentences that are wrong on purpose (mistake boxes and wrong quiz options).
 
@@ -179,7 +179,9 @@ After adding words, run `pnpm german --dictionary` and check the principal parts
 
 ### Search and word pages
 
-`scripts/build-search-index.ts` writes `public/dictionary-index.json`: a short summary of each entry plus every inflected form, labelled ("ging → Präteritum: ich, er/sie/es"). The search page loads it once, so you can type "ging", "Häusern" or "stehe auf" and land on the right word. Umlauts are optional. Each word also has a static page at `/dictionary/<id>/` with its tables, and a button that adds it to the review deck.
+`scripts/build-search-index.ts` writes `public/dictionary-index.<hash>.json`: a short summary of each entry plus every inflected form, labelled ("ging → Präteritum: ich, er/sie/es"). The search page loads it once, so you can type "ging", "Häusern" or "stehe auf" and land on the right word. Umlauts are optional. Each word also has a static page at `/dictionary/<id>/` with its tables, and a button that adds it to the review deck.
+
+To keep the page quick to open, the first 40 words are built into its HTML, and more are added as you scroll, 40 at a time. The hash in the file name changes only when the words change, so `vercel.json` lets browsers cache the file for a year. A repeat visit reads it from disk. On other hosts, set a long cache time for `dictionary-index.*.json` yourself.
 
 ### Sentence helper
 

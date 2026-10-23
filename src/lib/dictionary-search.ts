@@ -2,6 +2,9 @@ import Fuse from "fuse.js";
 
 import { foldKey, type DictionaryIndex, type IndexEntry } from "./dictionary-index";
 
+/** Rows shown at first and added each time the list scrolls to its end. */
+export const DICTIONARY_PAGE_SIZE = 40;
+
 export type DictHit = {
   entry: IndexEntry;
   /** Why it matched: "ging → Präteritum: ich, er/sie/es", "English: to go". */

@@ -105,7 +105,7 @@ function SentenceResult({ s }: { s: AnalyzedSentence }) {
   );
 }
 
-export function SentenceHelper() {
+export function SentenceHelper({ indexUrl }: { indexUrl: string }) {
   const params = useSearchParams();
   const [text, setText] = useState(params.get("text") ?? "");
   const [index, setIndex] = useState<DictionaryIndex | null>(null);
@@ -113,8 +113,8 @@ export function SentenceHelper() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    loadDictionaryIndex().then(setIndex, () => setError(true));
-  }, []);
+    loadDictionaryIndex(indexUrl).then(setIndex, () => setError(true));
+  }, [indexUrl]);
 
   useEffect(() => {
     const url = new URL(window.location.href);
