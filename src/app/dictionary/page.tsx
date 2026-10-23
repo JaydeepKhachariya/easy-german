@@ -3,13 +3,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { TextSearchIcon } from "lucide-react";
 
-import { DictionarySearch } from "@/components/dictionary/dictionary-search";
+import { DictionaryListPreview, DictionarySearch } from "@/components/dictionary/dictionary-search";
 import { PageHeader } from "@/components/layout/page-header";
+import { DICTIONARY_INDEX, DICTIONARY_INDEX_URL } from "@/lib/dictionary-file";
+import { DICTIONARY_PAGE_SIZE } from "@/lib/dictionary-search";
 
 export const metadata: Metadata = {
   title: "Dictionary",
   description: "German–English A1 dictionary with conjugation and declension tables.",
 };
+
+// The first words are built into the HTML, so the list shows before any script or data loads.
+const firstEntries = DICTIONARY_INDEX.entries.slice(0, DICTIONARY_PAGE_SIZE);
 
 export default function DictionaryPage() {
   return (
@@ -30,8 +35,8 @@ export default function DictionaryPage() {
           </span>
         </span>
       </Link>
-      <Suspense fallback={<p className="text-muted-foreground">Loading...</p>}>
-        <DictionarySearch />
+      <Suspense fallback={<DictionaryListPreview entries={firstEntries} />}>
+        <DictionarySearch indexUrl={DICTIONARY_INDEX_URL} firstEntries={firstEntries} />
       </Suspense>
     </>
   );

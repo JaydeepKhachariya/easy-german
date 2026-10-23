@@ -1,7 +1,7 @@
 /**
  * The client-side dictionary index: a short summary per entry plus every inflected form,
  * so typing "ging", "Häusern" or "stehe auf" finds the headword. Built at build time into
- * public/dictionary-index.json by scripts/build-search-index.ts.
+ * public/dictionary-index.<hash>.json by scripts/build-search-index.ts.
  */
 import type { DictEntry, Pos } from "@/content/dictionary/schema";
 

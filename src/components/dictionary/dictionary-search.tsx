@@ -12,7 +12,7 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { ArticleTag } from "@/components/visualizers/article";
 import { POS, POS_LABELS, type Pos } from "@/content/dictionary/schema";
 import type { DictionaryIndex, IndexEntry } from "@/lib/dictionary-index";
-import { createDictionarySearch } from "@/lib/dictionary-search";
+import { createDictionarySearch, DICTIONARY_PAGE_SIZE } from "@/lib/dictionary-search";
 import { loadDictionaryIndex } from "@/lib/load-dictionary";
 
 function Headword({ e }: { e: IndexEntry }) {
@@ -28,6 +28,20 @@ function Headword({ e }: { e: IndexEntry }) {
     <span className="font-medium" lang="de">
       {e.h}
     </span>
+  );
+}
+
+/** The first words as plain HTML, shown while the page's script loads. */
+export function DictionaryListPreview({ entries }: { entries: IndexEntry[] }) {
+  return (
+    <div className="space-y-4">
+      <div className="h-11 rounded-md border bg-muted/40" aria-hidden />
+      <ul className="divide-y rounded-lg border">
+        {entries.map((e) => (
+          <Row key={e.id} e={e} />
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -53,7 +67,37 @@ function Row({ e, reason }: { e: IndexEntry; reason?: string }) {
   );
 }
 
-export function DictionarySearch() {
+/**
+ * Calls onVisible when the element is near the viewport. `step` re-checks after each page,
+ * since an observer only reports changes and a tall screen may still show the element.
+ */
+function useNearViewport(onVisible: () => void, active: boolean, step: number) {
+  const ref = useRef<HTMLDivElement>(null);
+  const callback = useRef(onVisible);
+  useEffect(() => {
+    callback.current = onVisible;
+  });
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !active) return;
+    const io = new IntersectionObserver(
+      (entries) => entries.some((e) => e.isIntersecting) && callback.current(),
+      { rootMargin: "600px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [active, step]);
+  return ref;
+}
+
+export function DictionarySearch({
+  indexUrl,
+  firstEntries,
+}: {
+  indexUrl: string;
+  /** Rendered into the HTML so the list shows before the full index has loaded. */
+  firstEntries: IndexEntry[];
+}) {
   const params = useSearchParams();
   const [query, setQuery] = useState(params.get("q") ?? "");
   const [pos, setPos] = useState<Pos | "">("");
@@ -62,8 +106,8 @@ export function DictionarySearch() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    loadDictionaryIndex().then(setIndex, () => setError(true));
-  }, []);
+    loadDictionaryIndex(indexUrl).then(setIndex, () => setError(true));
+  }, [indexUrl]);
 
   // Keep ?q= in the address bar so a search can be shared or bookmarked.
   useEffect(() => {
@@ -75,14 +119,26 @@ export function DictionarySearch() {
 
   const search = useMemo(() => (index ? createDictionarySearch(index) : null), [index]);
   const results = useMemo(() => {
-    if (!index) return [];
+    if (!index)
+      return query.trim() || pos ? [] : firstEntries.map((entry) => ({ entry, reason: "" }));
     if (query.trim() && search) {
-      return search(query, 40).filter((h) => !pos || h.entry.pos === pos);
+      return search(query, 120).filter((h) => !pos || h.entry.pos === pos);
     }
     return index.entries
       .filter((e) => !pos || e.pos === pos)
       .map((entry) => ({ entry, reason: "" }));
-  }, [index, search, query, pos]);
+  }, [index, search, query, pos, firstEntries]);
+
+  // Render the list a page at a time. The count starts over when the search changes.
+  const listKey = `${query}|${pos}`;
+  const [shown, setShown] = useState({ key: listKey, n: DICTIONARY_PAGE_SIZE });
+  const visible = shown.key === listKey ? shown.n : DICTIONARY_PAGE_SIZE;
+  const hasMore = visible < results.length;
+  const sentinel = useNearViewport(
+    () => setShown({ key: listKey, n: visible + DICTIONARY_PAGE_SIZE }),
+    hasMore,
+    visible,
+  );
 
   return (
     <div className="space-y-4">
@@ -130,24 +186,28 @@ export function DictionarySearch() {
           The dictionary could not load. Check your connection and reload.
         </p>
       )}
-      {!index && !error && <p className="text-muted-foreground">Loading the dictionary...</p>}
-      {index && (
-        <>
-          <p className="text-sm text-muted-foreground" aria-live="polite">
-            {query.trim()
-              ? results.length
-                ? `${results.length} ${results.length === 1 ? "result" : "results"}`
-                : "No results. Try the infinitive or the singular."
-              : `${results.length} words`}
-          </p>
-          {results.length > 0 && (
-            <ul className="divide-y rounded-lg border">
-              {results.map((r) => (
-                <Row key={r.entry.id} e={r.entry} reason={r.reason} />
-              ))}
-            </ul>
-          )}
-        </>
+      <p className="text-sm text-muted-foreground" aria-live="polite">
+        {!index
+          ? error
+            ? ""
+            : "Loading the dictionary..."
+          : query.trim()
+            ? results.length
+              ? `${results.length} ${results.length === 1 ? "result" : "results"}`
+              : "No results. Try the infinitive or the singular."
+            : `${results.length} words`}
+      </p>
+      {results.length > 0 && (
+        <ul className="divide-y rounded-lg border">
+          {results.slice(0, visible).map((r) => (
+            <Row key={r.entry.id} e={r.entry} reason={r.reason} />
+          ))}
+        </ul>
+      )}
+      {hasMore && (
+        <div ref={sentinel} className="py-4 text-center text-sm text-muted-foreground">
+          Loading more words...
+        </div>
       )}
     </div>
   );
