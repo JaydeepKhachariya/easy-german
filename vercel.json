@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [{ "source": "/groq/:path*", "destination": "https://api.groq.com/:path*" }],
   "headers": [
     {
       "source": "/(dictionary-index\\.[0-9a-f]+\\.json)",

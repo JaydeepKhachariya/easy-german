@@ -1,5 +1,8 @@
 import { ClockIcon } from "lucide-react";
 
+import { AskAiButton } from "@/components/ai/ask-ai-button";
+import { conceptContext } from "@/lib/ai/prompt";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { TableBlock } from "@/components/tables/table-block";
@@ -36,7 +39,7 @@ export function ConceptView({
   preview?: boolean;
 }) {
   return (
-    <article className="mx-auto max-w-3xl space-y-10">
+    <article className={cn("mx-auto max-w-3xl space-y-10", !preview && "pb-16")}>
       <header className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="secondary">{c.level}</Badge>
@@ -132,6 +135,8 @@ export function ConceptView({
           {!preview && <AddVocabButton conceptId={c.id} source={source} vocab={c.vocab} />}
         </Section>
       )}
+
+      {!preview && <AskAiButton context={conceptContext(c)} floating label="Ask AI" />}
 
       {footer && (
         <>

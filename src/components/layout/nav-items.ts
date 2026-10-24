@@ -6,6 +6,7 @@ import {
   LayoutDashboardIcon,
   NotebookPenIcon,
   SettingsIcon,
+  SparklesIcon,
   type LucideIcon,
 } from "lucide-react";
 
@@ -15,6 +16,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/learn/", label: "Learn", icon: BookOpenIcon },
   { href: "/exam/", label: "Exam", icon: GraduationCapIcon },
   { href: "/dictionary/", label: "Dictionary", icon: BookTextIcon },
+  { href: "/tutor/", label: "AI tutor", icon: SparklesIcon },
   { href: "/vocab/review/", label: "Review", icon: LayersIcon },
   { href: "/my-lessons/", label: "My Lessons", icon: NotebookPenIcon },
   { href: "/dashboard/", label: "Dashboard", icon: LayoutDashboardIcon },

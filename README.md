@@ -4,6 +4,8 @@ German A1 lessons for English speakers, built around one idea: start from how En
 
 There is also a German–English dictionary of about 730 A1 words. Each word has its own page with meanings, examples and, for verbs and nouns, full conjugation or declension tables. A sentence helper breaks a pasted German sentence into words and shows where the verb parts go.
 
+An optional AI tutor answers questions about any lesson, word or sentence. It runs on Groq's free plan with your own API key.
+
 It's a local-first web app. There is no backend, no login and no server database. Lessons are static pages. Progress, the vocab review deck and lessons you write yourself are stored in your browser (IndexedDB).
 
 ## Quick start
@@ -69,6 +71,7 @@ src/
   app/                      routes (all static)
     learn/[slug]/           core lessons, one page per concept (generateStaticParams)
     dictionary/             search, [id]/ (one page per word), sentence/ (sentence helper)
+    tutor/                  AI tutor chat
     my-lessons/             list, new, edit?id=..., view?id=... (client-rendered from IndexedDB)
     dashboard/ vocab/review/ exam/ settings/
   components/
@@ -77,6 +80,7 @@ src/
     exercise/               one component per exercise type, umlaut bar, feedback
     tables/                 conjugation, articles (colour-coded), generic tables
     dictionary/             entry page, verb and noun tables, search, sentence helper
+    ai/                     tutor chat, Ask AI button and panel, AI settings
     visualizers/            article colours, word-order diagram
     editor/                 lesson editor, import dialog
     my-lessons/ dashboard/ review/ settings/ layout/ audio/
@@ -99,6 +103,7 @@ src/
     dictionary-index.ts     every inflected form → its entry, for "type any form" search
     dictionary-search.ts    dictionary search (forms first, then fuzzy German and English)
     sentence-helper.ts      word-by-word sentence analysis
+    ai/                     Groq client, tutor prompts, chat Markdown parser, key storage
 scripts/                    print-german.ts, build-search-index.ts
 e2e/                        Playwright tests
 ```
@@ -188,6 +193,29 @@ To keep the page quick to open, the first 40 words are built into its HTML, and 
 `/dictionary/sentence/` looks up each word of a sentence in the same index. It picks the most likely entry from context (a capital letter mid-sentence suggests a noun), finds the conjugated verb, and checks the end of the clause for a separable prefix, a Partizip II or an infinitive. It also explains contractions like `am` (an + dem) and lists words it doesn't know.
 
 It doesn't translate. The English line under each sentence is a word-by-word gloss, and the page says so. Real translation needs a service like DeepL, which would mean an API key and sending text off the device. That doesn't fit a local-first app, so it was left out.
+
+## AI tutor
+
+The tutor answers questions in a chat. It's on the AI tutor page, behind the Ask AI button on every lesson and dictionary word, and in the sentence helper, where it can translate a sentence. In a lesson or on a word page it is given that lesson or word, so "explain this more simply" or "quiz me" work without copying anything.
+
+### Setup (free)
+
+1. Sign in at [console.groq.com/keys](https://console.groq.com/keys). It's free and doesn't ask for a card.
+2. Create an API key (it starts with `gsk_`).
+3. In the app, open Settings → AI tutor, paste the key and press Save.
+
+Each learner uses their own key. Nothing needs to be set on Vercel, and there are no environment variables.
+
+### How it works
+
+- There is no server. The browser calls Groq's OpenAI-compatible API directly, with the key from Settings (`src/lib/ai/groq.ts`). If a browser blocks that call, the app retries through `/groq/...`, which `vercel.json` forwards to `api.groq.com`. On other hosts only the direct route is available.
+- The key is kept in `localStorage`, not in the Dexie database, so it never ends up in a backup file. Questions are sent to Groq; nothing else leaves the device.
+- The model list comes from Groq at setup, so new models show up without a code change. "Automatic" picks the first available model from `PREFERRED_MODELS`.
+- The system prompt and the lesson, word and sentence contexts are in `src/lib/ai/prompt.ts`. Contexts are capped at 3,500 characters and only recent turns are sent, to stay inside the free plan's per-minute token limit.
+- Replies stream in and are rendered from a small Markdown parser (`src/lib/ai/markdown.ts`) into React elements. Model output is never inserted as HTML.
+- Errors are turned into plain messages: a wrong key, the free limit (with how long to wait), a model that was removed, or no connection.
+
+Free plans have daily and per-minute limits, which Groq changes from time to time. If you hit one, the tutor says how long to wait.
 
 ## Schema reference
 
@@ -358,8 +386,8 @@ Files from a newer format version are refused with a clear message. Older versio
 
 ## Testing
 
-- `pnpm test`: the answer checker, SM-2, the review queue, progress and weak areas, import/export and backups (with fake-indexeddb), the editor's draft conversion (every core lesson must survive draft → concept unchanged), search, content integrity, verb conjugation, noun declension, dictionary search and the sentence helper.
-- `pnpm test:e2e`: Playwright against the static build at 375px. It answers exercises, checks the progress, review and search flow, searches the dictionary and runs the sentence helper, creates, exports, re-imports and deletes a user lesson, exports and merges a backup, and checks that no page scrolls sideways.
+- `pnpm test`: the answer checker, SM-2, the review queue, progress and weak areas, import/export and backups (with fake-indexeddb), the editor's draft conversion (every core lesson must survive draft → concept unchanged), search, content integrity, verb conjugation, noun declension, dictionary search, the sentence helper, and the AI client (stream parsing, errors, route fallback, prompts, Markdown).
+- `pnpm test:e2e`: Playwright against the static build at 375px. It answers exercises, checks the progress, review and search flow, searches the dictionary and runs the sentence helper, sets up the AI tutor and chats about a lesson against a mocked Groq API, creates, exports, re-imports and deletes a user lesson, exports and merges a backup, and checks that no page scrolls sideways.
 - `pnpm german`: a human review of every German sentence. Run it after any content change.
 
 ## Status

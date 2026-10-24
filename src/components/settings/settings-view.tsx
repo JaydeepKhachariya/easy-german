@@ -25,6 +25,8 @@ import { loadGermanVoice, NO_VOICE_HELP, speakGerman } from "@/lib/speech";
 import { getPersistState, getUsage, requestPersist, type PersistState } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 
+import { AiSettings } from "@/components/ai/ai-settings";
+
 import { exportBackup, ExportBackupButton, ImportBackupDialog } from "./backup-restore";
 
 function ThemeSection() {
@@ -249,6 +251,15 @@ export function SettingsView() {
         </CardHeader>
         <CardContent>
           <DataSection />
+        </CardContent>
+      </Card>
+      <Card id="ai" className="scroll-mt-20">
+        <CardHeader>
+          <CardTitle>AI tutor</CardTitle>
+          <CardDescription>Free, using your own Groq API key.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AiSettings />
         </CardContent>
       </Card>
       <Card>

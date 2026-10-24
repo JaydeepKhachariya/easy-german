@@ -9,7 +9,14 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import type { DictionaryIndex } from "@/lib/dictionary-index";
 import { loadDictionaryIndex } from "@/lib/load-dictionary";
-import { analyzeText, type AnalyzedSentence, type AnalyzedToken } from "@/lib/sentence-helper";
+import { AskAiButton } from "@/components/ai/ask-ai-button";
+import { sentenceContext } from "@/lib/ai/prompt";
+import {
+  analyzeSentence,
+  splitSentences,
+  type AnalyzedSentence,
+  type AnalyzedToken,
+} from "@/lib/sentence-helper";
 import { cn } from "@/lib/utils";
 
 const EXAMPLES = [
@@ -79,7 +86,7 @@ function WordChip({ t }: { t: AnalyzedToken }) {
   );
 }
 
-function SentenceResult({ s }: { s: AnalyzedSentence }) {
+function SentenceResult({ s, sentence }: { s: AnalyzedSentence; sentence: string }) {
   const words = s.tokens.filter((t) => !t.punct);
   return (
     <section className="space-y-3 rounded-lg border p-4" aria-label="Sentence analysis">
@@ -101,6 +108,7 @@ function SentenceResult({ s }: { s: AnalyzedSentence }) {
           ))}
         </ul>
       )}
+      <AskAiButton context={sentenceContext(sentence)} label="Translate and explain with AI" />
     </section>
   );
 }
@@ -123,7 +131,16 @@ export function SentenceHelper({ indexUrl }: { indexUrl: string }) {
     window.history.replaceState(null, "", url);
   }, [text]);
 
-  const sentences = useMemo(() => (index ? analyzeText(index, text) : []), [index, text]);
+  const sentences = useMemo(
+    () =>
+      index
+        ? splitSentences(text).map((sentence) => ({
+            sentence,
+            s: analyzeSentence(index, sentence),
+          }))
+        : [],
+    [index, text],
+  );
 
   return (
     <div className="space-y-4">
@@ -172,7 +189,7 @@ export function SentenceHelper({ indexUrl }: { indexUrl: string }) {
         </p>
       )}
       {!index && !error && <p className="text-muted-foreground">Loading the dictionary...</p>}
-      {index && sentences.map((s, i) => <SentenceResult key={i} s={s} />)}
+      {index && sentences.map((r, i) => <SentenceResult key={i} s={r.s} sentence={r.sentence} />)}
     </div>
   );
 }

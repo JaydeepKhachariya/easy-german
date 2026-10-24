@@ -8,6 +8,9 @@ import { getConcept, conceptHref } from "@/content";
 import { comparisonOf, conjugationOf, declensionOf, headword } from "@/content/dictionary";
 import { POS_LABELS, TOPIC_LABELS, type DictEntry } from "@/content/dictionary/schema";
 
+import { AskAiButton } from "@/components/ai/ask-ai-button";
+import { entryContext } from "@/lib/ai/prompt";
+
 import { AddWordButton } from "./add-word-button";
 import { NounTable } from "./noun-table";
 import { VerbTables } from "./verb-tables";
@@ -39,6 +42,13 @@ export function EntryView({ entry: e }: { entry: DictEntry }) {
   const decl = declensionOf(e);
   const comp = comparisonOf(e);
   const head = headword(e);
+  const forms = [
+    conj && `Principal parts: ${conj.principalParts}`,
+    e.noun?.plural && `Plural: die ${e.noun.plural}`,
+    comp && `Comparison: ${comp.positive}, ${comp.comparative}, ${comp.superlative}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
   const lessons = e.lessons.map(getConcept).filter((c) => c !== undefined);
   const deckItem = {
     de: e.word,
@@ -124,7 +134,10 @@ export function EntryView({ entry: e }: { entry: DictEntry }) {
           </p>
         )}
 
-        <AddWordButton item={deckItem} entryId={e.id} />
+        <div className="flex flex-wrap gap-2">
+          <AddWordButton item={deckItem} entryId={e.id} />
+          <AskAiButton context={entryContext(e, head, forms)} label="Ask AI about this word" />
+        </div>
       </header>
 
       {e.note && (
